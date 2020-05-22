@@ -1,5 +1,6 @@
 const {generateToken} = require('../helpers/jwt')
 const { User } = require('../models')
+const googleVerification = require('../helpers/googleOAuth')    
 
 class UserController {
     static login(req,res,next){
@@ -40,6 +41,56 @@ class UserController {
                             })
 
     }
+
+    static googleLogin(req, res, next) {
+        let google_token = req.headers.google_token;
+        let email = null;
+        let newUser = false;
+        // let first_name = null;
+        // let last_name = null
+    
+        googleVerification(google_token)
+          .then(payload => {
+            email = payload.email;
+            // first_name = payload.given_name;
+            // last_name = payload.family_name
+            // console.log('payload: ', payload)
+            // console.log('emaul: ', email)
+            return User
+              .findOne({
+                where: {
+                  email
+                }
+              })
+          })
+          .then(user => {
+            if (user) {
+              return user;
+            } else {
+              newUser = true;
+              return User
+                .create({
+                  email,
+                  password: process.env.DEFAULT_GOOGLE_PASSWORD
+                });
+            }
+          })
+          .then(user => {
+            let code = newUser ? 201 : 200;
+    
+            const token = generateToken({
+              id: user.id,
+              email: user.email
+            });
+    
+            res.status(code).json({
+              token
+            });
+          })
+          .catch(err => {
+            next(err);
+          })
+      }
 }
 
 module.exports = UserController
