@@ -11,7 +11,7 @@ router.post('/googlelogin', UserController.googleLogin)
 
 router.use(authentication) //authenticate user before access
 // router.get('/home', DataController.homelog) //load homepage after logged in
-router.post('/foods/search', DataController.foodData) //load search results
+router.post('/foods/search', DataController.foodData) //load search results 
 
 
 
